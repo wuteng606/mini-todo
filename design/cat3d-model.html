@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3D 猫咪 · 模型版</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: ui-rounded, "SF Pro Rounded", -apple-system, "PingFang SC", sans-serif;
+    background:
+      radial-gradient(60% 50% at 20% 10%, #fff3ea 0%, transparent 60%),
+      radial-gradient(55% 55% at 85% 15%, #eae6ff 0%, transparent 62%),
+      radial-gradient(70% 60% at 50% 100%, #dff0f5 0%, transparent 65%),
+      linear-gradient(160deg, #fdf8f4 0%, #f3f0fa 50%, #eaf4f7 100%);
+    color: #2b2a33; overflow: hidden; -webkit-font-smoothing: antialiased;
+  }
+  .stage { position: relative; width: 100%; height: 100%; display: grid; place-items: center; }
+  #cat { width: min(82vh, 780px); height: min(82vh, 780px); display: block; cursor: pointer; touch-action: none; }
+  .top { position: absolute; top: 26px; left: 30px; display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: #6d6b7a; }
+  .top .dot { width: 7px; height: 7px; border-radius: 50%; background: #2f6bff; box-shadow: 0 0 0 4px rgba(47,107,255,.14); }
+  .top .pill { padding: 4px 9px; border-radius: 99px; background: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.9); font-size: 10.5px; color: #8f8b9d; }
+  .bottom { position: absolute; bottom: 26px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .hint { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .hint span { font-size: 11.5px; color: #6d6b7a; background: rgba(255,255,255,.68); border: 1px solid rgba(255,255,255,.9); border-radius: 99px; padding: 5px 11px; box-shadow: 0 6px 16px -12px rgba(70,60,100,.5); }
+  .hint span b { color: #2f6bff; font-weight: 700; }
+  .state { font-size: 10.5px; color: #a9a6b5; letter-spacing: .06em; text-transform: uppercase; }
+  .bubble {
+    position: absolute; transform: translate(-50%, -100%);
+    background: #fff; color: #4b4856; font-size: 13px; font-weight: 600;
+    padding: 8px 13px; border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 12px 26px -12px rgba(70,60,100,.5);
+    pointer-events: none; opacity: 0; transition: opacity .18s ease, transform .18s ease; white-space: nowrap;
+  }
+  .bubble.show { opacity: 1; transform: translate(-50%, -112%); }
+  .loading { position: absolute; font-size: 12px; color: #8f8b9d; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <canvas id="cat"></canvas>
+  <div class="loading" id="loading">正在加载模型…</div>
+  <div class="top"><span class="dot"></span>3D 猫咪 · AI 模型<span class="pill">glb 80k</span></div>
+  <div class="bottom">
+    <div class="hint">
+      <span>移动鼠标，它会<b>转头</b></span>
+      <span><b>点一下</b> 会蹦</span>
+      <span>按住<b>拖</b> 会歪</span>
+    </div>
+    <div class="state" id="state">loading</div>
+  </div>
+  <div class="bubble" id="bubble">喵～</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+const canvas = document.getElementById("cat");
+const stateEl = document.getElementById("state");
+const bubbleEl = document.getElementById("bubble");
+const loadingEl = document.getElementById("loading");
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+if (location.search.includes("noshadow")) renderer.shadowMap.enabled = false;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+
+scene.add(new THREE.HemisphereLight(0xfff7ee, 0xc9c4dd, 1.1));
+
+const key = new THREE.DirectionalLight(0xfff2df, 2.2);
+key.position.set(2.4, 4.2, 3.2);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.near = 1;
+key.shadow.camera.far = 14;
+key.shadow.camera.left = -3;
+key.shadow.camera.right = 3;
+key.shadow.camera.top = 3;
+key.shadow.camera.bottom = -1.5;
+key.shadow.bias = -0.0004;
+key.shadow.normalBias = 0.02;
+key.shadow.radius = 5;
+scene.add(key);
+
+const rim = new THREE.DirectionalLight(0xa8c8ff, 1.8);
+rim.position.set(-3.2, 2.4, -2.6);
+scene.add(rim);
+
+const fill = new THREE.DirectionalLight(0xffe2d2, 0.7);
+fill.position.set(-0.8, 1.0, 4.2);
+scene.add(fill);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(16, 16),
+  new THREE.ShadowMaterial({ color: 0x4a3a5a, opacity: 0.18, transparent: true })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+ground.visible = false;
+scene.add(ground);
+
+/* 假接触影：一张径向渐变贴图，跟着模型尺寸走 */
+function makeBlobShadow(w, d) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d");
+  const grd = g.createRadialGradient(128, 128, 8, 128, 128, 124);
+  grd.addColorStop(0, "rgba(58, 44, 70, 0.62)");
+  grd.addColorStop(0.45, "rgba(58, 44, 70, 0.28)");
+  grd.addColorStop(1, "rgba(58, 44, 70, 0)");
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 256, 256);
+  const tex = new THREE.CanvasTexture(c);
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, d),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false })
+  );
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = 0.005;
+  scene.add(mesh);
+  return mesh;
+}
+
+const pivot = new THREE.Group();
+scene.add(pivot);
+
+let model = null;
+let modelHeight = 1;
+const modelSize = new THREE.Vector3(1.9, 1.9, 1.9);
+
+/** 让整只猫（宽高一起）刚好放进画面 */
+function fitCamera() {
+  const vFov = (camera.fov * Math.PI) / 180;
+  const aspect = camera.aspect || 1;
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+  const distV = (modelSize.y / 2) / Math.tan(vFov / 2);
+  const distH = (modelSize.x / 2) / Math.tan(hFov / 2);
+  const dist = Math.max(distV, distH) * 1.16;
+
+  camera.position.set(0, modelSize.y * 0.62, dist);
+  camera.lookAt(0, modelSize.y * 0.46, 0);
+}
+
+new GLTFLoader().load(
+  "./models/cat.glb",
+  (gltf) => {
+    model = gltf.scene;
+    model.traverse((o) => {
+      if (o.isMesh) {
+        // 模型自带一块平底板，投影会出现方块 -> 改成不投阴影，用假接触影代替
+        o.castShadow = false;
+        o.receiveShadow = true;
+        if (o.material) {
+          o.material.envMapIntensity = 0.6;
+          o.material.roughness = Math.min(1, (o.material.roughness ?? 0.8) + 0.05);
+        }
+      }
+    });
+
+    /* 去掉模型自带的平整底板，避免侧面露馅 */
+    const cut = new URLSearchParams(location.search).get("cut");
+
+    model.traverse((o) => {
+      if (!o.isMesh || !cut) return;
+      const g = o.geometry;
+      const pos = g.attributes.position;
+      const idx = g.index;
+      if (!idx) return;
+      let zmin = Infinity, zmax = -Infinity;
+      for (let i = 0; i < pos.count; i++) {
+        const z = pos.getZ(i);
+        if (z < zmin) zmin = z;
+        if (z > zmax) zmax = z;
+      }
+      const span = Math.max(1e-6, zmax - zmin);
+      const th = cut === "far" ? zmin + span * 0.02 : zmax - span * 0.02;
+      const keep = [];
+      for (let i = 0; i < idx.count; i += 3) {
+        const a = idx.getX(i), b = idx.getX(i + 1), c = idx.getX(i + 2);
+        const za = pos.getZ(a), zb = pos.getZ(b), zc = pos.getZ(c);
+        const beyond = cut === "far"
+          ? za < th && zb < th && zc < th
+          : za > th && zb > th && zc > th;
+        if (beyond) continue;
+        keep.push(a, b, c);
+      }
+      g.setIndex(keep);
+      g.computeBoundingBox();
+      g.computeBoundingSphere();
+    });
+
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const scale = 1.9 / Math.max(size.y, 0.001);
+    model.scale.setScalar(scale);
+    model.position.set(
+      -center.x * scale,
+      -center.y * scale + (size.y * scale) / 2,
+      -center.z * scale
+    );
+    modelHeight = size.y * scale;
+    modelSize.set(size.x * scale, size.y * scale, size.z * scale);
+
+    pivot.add(model);
+
+    makeBlobShadow(modelSize.x * 1.25, modelSize.z * 1.35);
+
+    fitCamera();
+    loadingEl.style.display = "none";
+    setState("idle");
+  },
+  (e) => {
+    if (e.total) loadingEl.textContent = `加载模型 ${Math.round((e.loaded / e.total) * 100)}%`;
+  },
+  (err) => {
+    loadingEl.textContent = "模型加载失败：" + err.message;
+  }
+);
+
+/* ---------- 爱心 ---------- */
+function heartTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.fillStyle = "#ff85a8";
+  g.beginPath();
+  g.moveTo(32, 57);
+  g.bezierCurveTo(2, 34, 12, 7, 32, 19);
+  g.bezierCurveTo(52, 7, 62, 34, 32, 57);
+  g.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const heartTex = heartTexture();
+const hearts = [];
+for (let i = 0; i < 14; i++) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: heartTex, transparent: true, depthWrite: false, opacity: 0 }));
+  s.visible = false;
+  scene.add(s);
+  hearts.push({ sprite: s, life: 0, vel: new THREE.Vector3(), size: 0.2 });
+}
+function burstHearts(origin) {
+  let used = 0;
+  for (const h of hearts) {
+    if (used >= 10) break;
+    if (h.life > 0) continue;
+    used++;
+    h.life = 1;
+    h.sprite.visible = true;
+    h.sprite.position.copy(origin);
+    h.sprite.position.x += (Math.random() - 0.5) * 0.7;
+    h.size = 0.11 + Math.random() * 0.09;
+    h.vel.set((Math.random() - 0.5) * 0.8, 0.8 + Math.random() * 0.6, (Math.random() - 0.5) * 0.3);
+  }
+}
+
+/* ---------- 交互 ---------- */
+const S = { hovered: false, pressed: false, jumpT: -1, look: new THREE.Vector2(), target: new THREE.Vector2(), tilt: 0, tiltTarget: 0, zoom: 0 };
+const clock = new THREE.Clock();
+const ray = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const down = { x: 0, y: 0, t: 0 };
+const setState = (n) => { if (stateEl.textContent !== n) stateEl.textContent = n; };
+const phrases = ["喵～", "摸摸头", "再来一次！", "今天也要加油呀"];
+let bubbleTimer = 0;
+function say(text) {
+  bubbleEl.textContent = text;
+  bubbleEl.classList.add("show");
+  bubbleTimer = 1.6;
+}
+
+canvas.addEventListener("pointermove", (e) => {
+  const r = canvas.getBoundingClientRect();
+  ndc.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  ndc.y = -(((e.clientY - r.top) / r.height) * 2 - 1);
+  S.target.set(ndc.x, ndc.y);
+  if (model) {
+    ray.setFromCamera(ndc, camera);
+    S.hovered = ray.intersectObject(model, true).length > 0 || S.pressed;
+  }
+  if (S.pressed) S.tiltTarget = ndc.x * 0.3;
+});
+
+canvas.addEventListener("pointerdown", (e) => {
+  S.pressed = true;
+  down.x = e.clientX; down.y = e.clientY; down.t = performance.now();
+  canvas.setPointerCapture(e.pointerId);
+});
+
+window.addEventListener("pointerup", (e) => {
+  const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
+  const dt = performance.now() - down.t;
+  const was = S.pressed;
+  S.pressed = false;
+  S.tiltTarget = 0;
+  if (was && moved < 8 && dt < 400 && S.hovered) {
+    S.jumpT = 0;
+    burstHearts(new THREE.Vector3(0, modelHeight * 0.9, 0.3));
+    say(phrases[Math.floor(Math.random() * phrases.length)]);
+  }
+});
+
+canvas.addEventListener("pointerleave", () => {
+  S.hovered = false;
+  S.pressed = false;
+  S.tiltTarget = 0;
+  S.target.set(0, 0);
+});
+
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  if (model) fitCamera();
+}
+new ResizeObserver(resize).observe(canvas);
+resize();
+
+let t = 0;
+function tick() {
+  const dt = Math.min(clock.getDelta(), 1 / 30);
+  t += dt;
+
+  S.look.lerp(S.target, 0.09);
+  S.tilt += (S.tiltTarget - S.tilt) * 0.08;
+
+  if (model) {
+    /* 转头 + 跟随 */
+    pivot.rotation.y = S.look.x * 0.35 + S.tilt * 0.3;
+    pivot.rotation.x = -S.look.y * 0.1;
+    pivot.rotation.z = -S.tilt * 0.18;
+
+    /* 呼吸 */
+    pivot.scale.setScalar(1 + Math.sin(t * 1.8) * 0.012);
+
+    /* 悬停轻微上浮 */
+    const lift = S.hovered ? 0.03 : 0;
+    const jumpY = S.jumpT >= 0 ? Math.sin(Math.min(S.jumpT, 1) * Math.PI) * 0.45 : 0;
+    pivot.position.y = lift + jumpY;
+  }
+
+  if (S.jumpT >= 0) {
+    S.jumpT += dt / 0.7;
+    if (S.jumpT >= 1) S.jumpT = -1;
+  }
+
+  for (const h of hearts) {
+    if (h.life <= 0) continue;
+    h.life -= dt / 1.1;
+    h.sprite.position.addScaledVector(h.vel, dt);
+    h.vel.y -= dt * 0.55;
+    const p = 1 - h.life;
+    h.sprite.material.opacity = Math.max(0, Math.sin(Math.min(p, 1) * Math.PI) * 1.05);
+    const s = h.size * (0.7 + p * 0.9);
+    h.sprite.scale.set(s, s, 1);
+    if (h.life <= 0) h.sprite.visible = false;
+  }
+
+  if (bubbleTimer > 0) {
+    bubbleTimer -= dt;
+    if (bubbleTimer <= 0) bubbleEl.classList.remove("show");
+  }
+
+  if (model) {
+    if (S.jumpT >= 0) setState("jump");
+    else if (S.pressed) setState("press");
+    else if (S.hovered) setState("hover");
+    else setState("idle");
+  }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  # 手动触发：Actions 页面点 Run workflow，同样会构建并发布到 Release
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Build Windows installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build and publish to Release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # v__VERSION__ 会被替换成 tauri.conf.json 里的 version
+          tagName: v__VERSION__
+          releaseName: "Mini Todo v__VERSION__"
+          releaseBody: |
+            一个纯本地的待办小工具：今日 / 即将到来 / 全部 / 已完成四个视图，菜单栏常驻，`Ctrl + Shift + Space` 随时记一条。
+
+            **Windows 安装包**：下载 `Mini Todo_*_x64-setup.exe`，双击安装即可。
+
+            > 安装包未做代码签名，SmartScreen 可能提示"未知发布者"，点「更多信息 → 仍要运行」。
+            > macOS 版本请从源码构建，见 README。
+          releaseDraft: false
+          prerelease: false
+          # 只出 NSIS 安装包（exe）；想同时出 MSI 改成 --bundles nsis,msi
+          args: --bundles nsis

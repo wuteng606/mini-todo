@@ -1,0 +1,56 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="180" y1="120" x2="860" y2="940" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#CBD8FF"/>
+      <stop offset="0.36" stop-color="#8FA8FF"/>
+      <stop offset="0.72" stop-color="#6379F0"/>
+      <stop offset="1" stop-color="#4A5AD8"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="512" y1="146" x2="512" y2="700" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="card" x1="300" y1="290" x2="700" y2="740" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F3F6FF"/>
+    </linearGradient>
+    <linearGradient id="dot" x1="340" y1="360" x2="380" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EA6FF"/>
+      <stop offset="1" stop-color="#2F5CF0"/>
+    </linearGradient>
+    <filter id="outer" x="80" y="60" width="880" height="920" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#1B2E7A" flood-opacity="0.28"/>
+    </filter>
+    <filter id="cardShadow" x="200" y="220" width="660" height="640" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#2A3A86" flood-opacity="0.26"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#outer)">
+    <rect x="146" y="146" width="732" height="732" rx="200" fill="url(#bg)"/>
+    <rect x="146" y="146" width="732" height="732" rx="200" fill="url(#gloss)"/>
+    <rect x="147.5" y="147.5" width="729" height="729" rx="198.5" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="3"/>
+
+    <!-- 小星光 -->
+    <path d="M742 246 L750 282 L786 290 L750 298 L742 334 L734 298 L698 290 L734 282 Z" fill="#FFE9AE" opacity="0.95"/>
+
+    <!-- 清单卡片 -->
+    <g filter="url(#cardShadow)" transform="rotate(-7 512 510)">
+      <rect x="292" y="280" width="440" height="460" rx="86" fill="url(#card)"/>
+
+      <!-- 第一行：已勾选 -->
+      <circle cx="372" cy="385" r="27" fill="url(#dot)"/>
+      <path d="M359 385 L369 395 L386 376" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="418" y="371" width="212" height="28" rx="14" fill="#E4EAF8"/>
+
+      <!-- 第二行：已勾选 -->
+      <circle cx="372" cy="497" r="27" fill="url(#dot)"/>
+      <path d="M359 497 L369 507 L386 488" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="418" y="483" width="164" height="28" rx="14" fill="#E4EAF8"/>
+
+      <!-- 第三行：未完成 -->
+      <circle cx="372" cy="609" r="24" fill="none" stroke="#C6D2E8" stroke-width="7"/>
+      <rect x="418" y="595" width="188" height="28" rx="14" fill="#EDF1FA"/>
+    </g>
+  </g>
+</svg>
