@@ -35,7 +35,7 @@ macOS 用 `⌘`，Windows 用 `Ctrl`，下表以 macOS 写法为例。
 
 ## 安装
 
-**Windows**：到 [Releases](https://github.com/wuteng606/mini-todo/releases) 下载 `Mini Todo_*_x64-setup.exe` 双击安装。
+**Windows**：到 [Releases](https://github.com/wuteng606/mini-todo/releases) 下载 `Mini.Todo_*_x64-setup.exe` 双击安装。
 
 **macOS**：目前没有签名公证的安装包，按下面的「打包」从源码构建即可；构建好的应用在 `~/Applications/Mini Todo.app`，首次打开如被系统拦下，右键 →「打开」。
 

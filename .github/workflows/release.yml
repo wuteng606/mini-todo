@@ -47,7 +47,7 @@ jobs:
           releaseBody: |
             一个纯本地的待办小工具：今日 / 即将到来 / 全部 / 已完成四个视图，菜单栏常驻，`Ctrl + Shift + Space` 随时记一条。
 
-            **Windows 安装包**：下载 `Mini Todo_*_x64-setup.exe`，双击安装即可。
+            **Windows 安装包**：下载 `Mini.Todo_*_x64-setup.exe`，双击安装即可。
 
             > 安装包未做代码签名，SmartScreen 可能提示"未知发布者"，点「更多信息 → 仍要运行」。
             > macOS 版本请从源码构建，见 README。
