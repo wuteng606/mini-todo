@@ -20,6 +20,11 @@ serde_json = "1"
 rusqlite = { version = "0.32", features = ["bundled"] }
 chrono = "0.4"
 
+# macOS 专用：直接操作 NSWindow，让快捷窗口能浮在全屏应用之上
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSWindow"] }
+
 [features]
 default = []
 # 打包时启用：把前端 dist 内嵌进二进制，脱离 dev server 运行
