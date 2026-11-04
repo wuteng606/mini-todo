@@ -350,6 +350,13 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
+            // ---------- macOS：纯菜单栏后台程序 ----------
+            // Accessory = 没有 Dock 图标、没有应用菜单，只在菜单栏留一个图标。
+            // 打包后的 .app 还会在 Info.plist 里写 LSUIElement，避免启动瞬间闪一下 Dock。
+            #[cfg(target_os = "macos")]
+            app.handle()
+                .set_activation_policy(tauri::ActivationPolicy::Accessory)?;
+
             // ---------- 数据库 ----------
             // 默认放 ~/Library/Application Support/com.minitodo.desktop
             // 可用 MINI_TODO_DATA_DIR 覆盖（便于调试 / 便携模式）
@@ -414,6 +421,11 @@ fn main() {
             if let Some(win) = app.get_webview_window("popover") {
                 macos_overlay::make_overlay(&win);
             }
+
+            // Accessory（无 Dock 图标）下，启动时系统不会自动把 App 激活，
+            // 主窗口会开在别的窗口后面 —— 这里主动提到最前一次。
+            #[cfg(target_os = "macos")]
+            show_main(app.handle());
 
             // ---------- 全局快捷键 ⌘⇧Space ----------
             #[cfg(desktop)]

@@ -22,6 +22,9 @@
   <string>11.0</string>
   <key>LSApplicationCategoryType</key>
   <string>public.app-category.productivity</string>
+  <!-- 菜单栏后台程序：不出现在 Dock，也没有应用菜单 -->
+  <key>LSUIElement</key>
+  <true/>
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>NSSupportsAutomaticGraphicsSwitching</key>

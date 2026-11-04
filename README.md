@@ -15,6 +15,7 @@
 - **到点提醒**：设了时间的任务到点发系统通知，同一任务只提醒一次
 - **自然语言录入**：输入「明天 3 点 提交周报」，自动拆出标题与时间
 - **菜单栏 / 托盘常驻**：点击图标或按 `⌘ ⇧ Space`（Windows 为 `Ctrl ⇧ Space`）弹出快捷记录，回车即存、失焦自动收起
+- **不占 Dock**：macOS 上只在菜单栏留一个图标，后台运行，`⌘ Tab` 和 Dock 里都不会出现（退出走菜单栏菜单）
 - **全屏也盖不住**：macOS 上别的应用进了全屏，快捷窗口依然浮在最上层（不切走全屏、也不抢焦点），记完点回全屏应用自动收起
 - **搜索**：`⌘ K` 实时过滤
 - **本地数据**：SQLite，macOS 在 `~/Library/Application Support/com.minitodo.desktop/`，Windows 在 `%APPDATA%\com.minitodo.desktop\`
@@ -87,6 +88,9 @@ Tauri 2 · React 19 · TypeScript · Vite · SQLite（rusqlite）· Rust 1.89
 > macOS 的快捷窗口在运行时被改造成「非激活 NSPanel」（`src-tauri/src/macos_overlay.rs`）：
 > 只有这种窗口能被窗口服务器放进其它应用的全屏 Space，并且不用激活 App 就能收键盘输入。
 > 排查时设 `MINI_TODO_DEBUG_OVERLAY=1` 能看到它的 class / styleMask / 层级 / 是否在当前 Space。
+>
+> 应用本身是 `ActivationPolicy::Accessory`（`main.rs` 的 setup）+ 打包时 `Info.plist` 的
+> `LSUIElement`：菜单栏常驻、无 Dock 图标、无应用菜单，属于后台程序。
 
 ## 目录
 
