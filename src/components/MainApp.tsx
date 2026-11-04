@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import catUrl from "../../design/assets/cat-mascot-cut.png";
 import { isTauri, onFocusQuickAdd } from "../lib/api";
-import { cheer, dateLine, dueText, fullDate } from "../lib/dates";
+import { cheer, dateLine, dueText, fullDate, startOfDay } from "../lib/dates";
 import { parseTask } from "../lib/nlp";
 import { countFor, selectView } from "../lib/select";
 import { TAGS, TAG_CLASS, type TagName, type Task, type ViewKey } from "../lib/types";
@@ -75,6 +75,7 @@ function TaskRow({
   dragging,
   dropTarget,
   completing,
+  justAdded,
   onDragStart,
   onDragOver,
   onDragEnd,
@@ -88,6 +89,7 @@ function TaskRow({
   dragging: boolean;
   dropTarget: boolean;
   completing: boolean;
+  justAdded: boolean;
   onDragStart: (id: number) => void;
   onDragOver: (id: number) => void;
   onDragEnd: () => void;
@@ -103,6 +105,7 @@ function TaskRow({
     dragging ? "dragging" : "",
     dropTarget ? "drop-target" : "",
     completing ? "completing" : "",
+    justAdded ? "just-added" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -110,6 +113,7 @@ function TaskRow({
   return (
     <div
       className={cls}
+      data-task-id={task.id}
       draggable={sortable}
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = "move";
@@ -222,19 +226,44 @@ export function MainApp() {
   const [dragId, setDragId] = useState<number | null>(null);
   const [overId, setOverId] = useState<number | null>(null);
   const [completing, setCompleting] = useState<number[]>([]);
+  const [justAddedId, setJustAddedId] = useState<number | null>(null);
+  const [flash, setFlash] = useState<{ text: string; tone: "ok" | "error" } | null>(null);
   const [catSay, setCatSay] = useState<string | null>(null);
   const [catCheer, setCatCheer] = useState(false);
   const sayTimer = useRef<number | undefined>(undefined);
   const cheerTimer = useRef<number | undefined>(undefined);
+  const flashTimer = useRef<number | undefined>(undefined);
+  const justAddedTimer = useRef<number | undefined>(undefined);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(
     () => () => {
       window.clearTimeout(sayTimer.current);
       window.clearTimeout(cheerTimer.current);
+      window.clearTimeout(flashTimer.current);
+      window.clearTimeout(justAddedTimer.current);
     },
     [],
   );
+
+  const showFlash = useCallback((text: string, tone: "ok" | "error" = "ok") => {
+    setFlash({ text, tone });
+    window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlash(null), 2600);
+  }, []);
+
+  const highlightAdded = useCallback((id: number) => {
+    setJustAddedId(id);
+    window.clearTimeout(justAddedTimer.current);
+    justAddedTimer.current = window.setTimeout(() => setJustAddedId(null), 2000);
+  }, []);
+
+  // 新任务加完后滚到它，避免排在列表下方看不到
+  useEffect(() => {
+    if (justAddedId == null) return;
+    const el = document.querySelector<HTMLElement>(`[data-task-id="${justAddedId}"]`);
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [justAddedId, view]);
 
   const pokeCat = () => {
     setCatSay(CAT_PHRASES[Math.floor(Math.random() * CAT_PHRASES.length)]);
@@ -344,6 +373,7 @@ export function MainApp() {
       dragging={dragId === t.id}
       dropTarget={overId === t.id && dragId !== t.id}
       completing={completing.includes(t.id)}
+      justAdded={justAddedId === t.id}
       onToggle={handleToggle}
       onRemove={remove}
       onEdit={setEditingId}
@@ -476,8 +506,18 @@ export function MainApp() {
               {adding && (
                 <Adder
                   onAdd={(titleText, dueAt, tag) => {
-                    void create({ title: titleText, dueAt, tag });
                     setAdding(false);
+                    void create({ title: titleText, dueAt, tag })
+                      .then((task) => {
+                        // 新任务不在当前清单里时切到它所在的清单，避免「加了却看不到」
+                        const target: ViewKey =
+                          task.dueAt != null && task.dueAt >= startOfDay(Date.now()) + 86_400_000
+                            ? "upcoming"
+                            : "today";
+                        setView((current) => (current === "all" ? current : target));
+                        highlightAdded(task.id);
+                      })
+                      .catch((err) => showFlash(`添加失败：${String(err)}`, "error"));
                   }}
                   onClose={() => setAdding(false)}
                 />
@@ -526,6 +566,11 @@ export function MainApp() {
           />
         )}
       </div>
+      {flash && (
+        <div className={`toast ${flash.tone}`} role="status">
+          {flash.text}
+        </div>
+      )}
     </div>
   );
 }

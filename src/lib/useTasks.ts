@@ -67,10 +67,14 @@ export function useTasks() {
   );
 
   const reorder = useCallback(async (ids: number[]) => {
+    const order = new Map(ids.map((id, i) => [id, (i + 1) * 1000]));
     setTasks((prev) => {
       const map = new Map(prev.map((t) => [t.id, t]));
-      const ordered = ids.map((id) => map.get(id)).filter(Boolean) as Task[];
-      const rest = prev.filter((t) => !ids.includes(t.id));
+      const ordered = ids
+        .map((id) => map.get(id))
+        .filter((t): t is Task => Boolean(t))
+        .map((t) => ({ ...t, sortOrder: order.get(t.id)! }));
+      const rest = prev.filter((t) => !order.has(t.id));
       return [...ordered, ...rest];
     });
     await api.reorderTasks(ids);

@@ -103,7 +103,8 @@ async function mockCall<T>(cmd: string, args: Record<string, unknown> = {}): Pro
             ? {
                 ...t,
                 title: (args.title as string) ?? t.title,
-                dueAt: args.dueAt === undefined ? t.dueAt : (args.dueAt as number | null),
+                // 与 Rust 侧 COALESCE 行为一致：null / undefined 表示「不改」
+                dueAt: (args.dueAt as number | null) ?? t.dueAt,
                 tag: (args.tag as string) ?? t.tag,
                 priority: (args.priority as number) ?? t.priority,
               }
@@ -120,14 +121,12 @@ async function mockCall<T>(cmd: string, args: Record<string, unknown> = {}): Pro
 
     case "reorder_tasks": {
       const ids = (args.ids as number[]) ?? [];
-      const map = new Map(tasks.map((t) => [t.id, t]));
+      const order = new Map(ids.map((id, i) => [id, (i + 1) * 1000]));
+      // 只改传入任务的位置，未参与排序的任务保持原样
       writeMock(
-        ids
-          .map((id, i) => {
-            const t = map.get(id);
-            return t ? { ...t, sortOrder: (i + 1) * 1000 } : null;
-          })
-          .filter(Boolean) as Task[],
+        tasks.map((t) =>
+          order.has(t.id) ? { ...t, sortOrder: order.get(t.id)! } : t,
+        ),
       );
       return undefined as T;
     }

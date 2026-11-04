@@ -360,6 +360,25 @@ input { user-select: text; }
   100% { opacity: 0.25; transform: scale(0.996); }
 }
 
+/* 刚添加的任务闪一下，配合自动切换视图，明确告诉用户「加上了」 */
+.task.just-added {
+  animation: taskAdded 1.8s ease;
+}
+@keyframes taskAdded {
+  0% {
+    background: rgba(219, 232, 255, 0.96);
+    box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.42);
+  }
+  70% {
+    background: rgba(219, 232, 255, 0.55);
+    box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.18);
+  }
+  100% {
+    background: var(--pill);
+    box-shadow: var(--shadow-pill);
+  }
+}
+
 /* 拖拽排序 */
 .task.sortable { cursor: grab; }
 .task.sortable:active { cursor: grabbing; }
@@ -539,6 +558,20 @@ input { user-select: text; }
 .pop-input input::placeholder { color: #a8a5b6; font-weight: 400; }
 .pop-input .keys { font-size: 10px; color: #b3b0be; white-space: nowrap; }
 
+/* 回车保存后的确认条：尤其是「明天/未来」任务不会出现在今日列表里 */
+.pop-flash {
+  margin: -2px 0 8px; padding: 7px 10px; border-radius: 9px;
+  font-size: 11px; font-weight: 700; line-height: 1.45;
+  color: #2f6bff; background: rgba(47, 107, 255, 0.1);
+  border: 1px solid rgba(47, 107, 255, 0.18);
+  position: relative; z-index: 1;
+  animation: pop 0.2s ease;
+}
+.pop-flash.error {
+  color: #b4483a; background: rgba(226, 112, 95, 0.12);
+  border-color: rgba(226, 112, 95, 0.24);
+}
+
 .pop-list {
   flex: 1; min-height: 0; overflow-y: auto;
   display: flex; flex-direction: column; gap: 6px;
@@ -688,3 +721,21 @@ input { user-select: text; }
 .btn.primary { background: linear-gradient(150deg, #5b9bff, #2d63f2); color: #fff; }
 .btn.primary:hover { filter: brightness(1.05); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* 操作失败提示（主窗口） */
+.toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 60;
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 48px));
+  padding: 10px 16px; border-radius: 999px;
+  background: rgba(35, 34, 48, 0.92); color: #fff;
+  font-size: 12px; font-weight: 600; line-height: 1.45;
+  box-shadow: 0 14px 30px -12px rgba(35, 30, 50, 0.6);
+  animation: toast-in 0.2s ease;
+  user-select: text;
+}
+.toast.error { background: rgba(180, 72, 58, 0.95); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

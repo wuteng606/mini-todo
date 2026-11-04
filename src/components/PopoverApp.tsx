@@ -17,8 +17,16 @@ export function PopoverApp() {
   const [completing, setCompleting] = useState<number[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
+  const [flash, setFlash] = useState<{ text: string; tone: "ok" | "error" } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const editRef = useRef<HTMLInputElement>(null);
+  const flashTimer = useRef<number | undefined>(undefined);
+
+  const showFlash = (text: string, tone: "ok" | "error" = "ok") => {
+    setFlash({ text, tone });
+    window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlash(null), 2600);
+  };
 
   /** 先播放 420ms 的完成动效，再真正落库，避免点了就消失 */
   const complete = (id: number) => {
@@ -74,6 +82,7 @@ export function PopoverApp() {
     return () => {
       window.removeEventListener("focus", focus);
       window.removeEventListener("keydown", onKey);
+      window.clearTimeout(flashTimer.current);
     };
   }, []);
 
@@ -82,8 +91,20 @@ export function PopoverApp() {
     if (!v) return;
     const p = parseTask(v);
     const tag = /报告|会议|周报|方案|邮件/.test(v) ? "工作" : "生活";
-    await create({ title: p.title, dueAt: p.dueAt, tag });
-    setValue("");
+    try {
+      const task = await create({ title: p.title, dueAt: p.dueAt, tag });
+      setValue("");
+      const tomorrow = startOfDay(Date.now()) + 86_400_000;
+      if (task.dueAt == null || task.dueAt < tomorrow) {
+        showFlash(task.dueAt ? `已添加 · ${dueText(task.dueAt).text}` : "已添加");
+      } else {
+        // 弹窗只列今日待办，未来任务加完后不会出现在列表里，必须明确告诉用户
+        showFlash(`已加入即将到来 · ${dueText(task.dueAt).text}`);
+      }
+    } catch (err) {
+      // 失败时保留输入，方便重试
+      showFlash(`添加失败：${String(err)}`, "error");
+    }
   };
 
   const close = () => { if (isTauri) void current().then((w) => w.hide()); };
@@ -110,6 +131,12 @@ export function PopoverApp() {
           />
           <span className="keys">↵</span>
         </div>
+
+        {flash && (
+          <div className={`pop-flash ${flash.tone}`} role="status">
+            {flash.text}
+          </div>
+        )}
 
         <div className="pop-list">
           {todayTasks.length === 0 && (

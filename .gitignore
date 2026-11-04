@@ -6,6 +6,11 @@ src-tauri/gen
 *.log
 .chrome-tmp
 
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
 # 本地数据库 / 临时数据
 *.db
 *.db-journal
