@@ -1,13 +1,10 @@
 node_modules
 dist
-src-tauri/target
+src-tauri/target*
 src-tauri/gen
 .DS_Store
 *.log
 .chrome-tmp
-
-# AI 生成的 3D 试验素材（38MB，可重新生成，不进仓库）
-design/models/
 
 # 本地数据库 / 临时数据
 *.db

@@ -81,12 +81,6 @@ export const PencilIcon = ({ className }: IconProps) => (
   </svg>
 );
 
-export const ChevronIcon = ({ className }: IconProps) => (
-  <svg viewBox="0 0 16 16" className={className} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4.6 6.2L8 9.6l3.4-3.4" />
-  </svg>
-);
-
 export const BarsIcon = ({ className }: IconProps) => (
   <svg viewBox="0 0 20 20" className={className} fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round">
     <path d="M4.4 16.2V11M10 16.2V5.4M15.6 16.2V8.6" />
