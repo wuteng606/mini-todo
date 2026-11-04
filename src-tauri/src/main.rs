@@ -410,8 +410,16 @@ fn main() {
                     }
                 });
 
-            if let Some(icon) = app.default_window_icon() {
-                tray = tray.icon(icon.clone());
+            // 菜单栏图标：tray-icon 会把图缩放到 18pt 高，视觉大小由图形留白决定，
+            // 所以这里用专门的 tray.png（满幅、无投影），而不是 App 图标（带 20% 留白）。
+            match tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png")) {
+                Ok(icon) => tray = tray.icon(icon),
+                Err(e) => {
+                    eprintln!("菜单栏图标加载失败，退回应用图标: {e:?}");
+                    if let Some(icon) = app.default_window_icon() {
+                        tray = tray.icon(icon.clone());
+                    }
+                }
             }
             tray.build(app)?;
 
