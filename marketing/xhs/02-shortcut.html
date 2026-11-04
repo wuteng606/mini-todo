@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: 1080px 1440px; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1440px; overflow: hidden; position: relative;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Heiti SC", system-ui, sans-serif;
+    color: #16203A;
+    background:
+      radial-gradient(760px 620px at 92% -4%, #D9E4FF 0%, rgba(217,228,255,0) 60%),
+      radial-gradient(700px 560px at 0% 96%, #FFE2D0 0%, rgba(255,226,208,0) 62%),
+      linear-gradient(172deg, #F7F9FF 0%, #FFF7F3 46%, #FFEFE6 100%);
+  }
+  .wrap { position: relative; height: 100%; padding: 84px 88px 76px; display: flex; flex-direction: column; }
+
+  .label {
+    align-self: flex-start; padding: 11px 22px; border-radius: 999px;
+    font-size: 21px; font-weight: 700; letter-spacing: 1px;
+    color: #C2410C; background: rgba(255,255,255,.8);
+    border: 1px solid rgba(194,65,12,.18);
+  }
+  h2 { margin-top: 34px; font-size: 76px; line-height: 1.24; font-weight: 800; letter-spacing: -1.5px; }
+  h2 em { font-style: normal; color: #2F55E0; }
+  .desc { margin-top: 22px; font-size: 30px; line-height: 1.55; color: #5E6880; }
+
+  .keys { margin-top: 54px; display: flex; align-items: center; justify-content: center; gap: 22px; }
+  .key {
+    min-width: 132px; height: 132px; padding: 0 26px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 62px; font-weight: 600; color: #24304C;
+    background: linear-gradient(180deg, #FFFFFF, #F1F4FB);
+    border-radius: 28px; border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 12px 0 #D8DFEF, 0 22px 34px rgba(40,54,96,.16), inset 0 2px 0 #fff;
+  }
+  .key.space { font-size: 34px; letter-spacing: 6px; padding: 0 34px; color: #4A5670; }
+  .plus { font-size: 40px; color: #AFB8CC; font-weight: 600; }
+
+  .stage { margin-top: 58px; position: relative; display: flex; justify-content: center; }
+  .pop {
+    width: 566px; border-radius: 34px; overflow: hidden;
+    background: #fff;
+    box-shadow: 0 44px 70px -30px rgba(35,52,110,.5), 0 10px 24px rgba(35,52,110,.10);
+    border: 1px solid rgba(255,255,255,.9);
+    transform: rotate(-1.6deg);
+  }
+  .pop img { display: block; width: 100%; }
+
+  .note {
+    margin-top: auto; padding-top: 34px; border-top: 1px solid rgba(53,65,94,.12);
+    display: flex; align-items: center; gap: 14px;
+    font-size: 26px; color: #59637B; line-height: 1.5;
+  }
+  .note span.dot { width: 10px; height: 10px; border-radius: 50%; background: #3D6CF6; flex: none; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="label">场景 · 写到一半</div>
+
+    <h2>想到的事<br><em>按下就记</em>，不切窗口</h2>
+    <div class="desc">不用找 App、不用开浏览器标签页<br>浮窗从菜单栏落下来，记完自动回去</div>
+
+    <div class="keys">
+      <div class="key">⌘</div><div class="plus">+</div>
+      <div class="key">⇧</div><div class="plus">+</div>
+      <div class="key space">SPACE</div>
+    </div>
+
+    <div class="stage">
+      <div class="pop"><img src="file:///Volumes/Extra/Projects/workbuddy/mini-tool/mini-todo-studio/marketing/xhs/popover-crop.png"></div>
+    </div>
+
+    <div class="note">
+      <span class="dot"></span>
+      <div>别的应用全屏时也能用 —— 浮窗就在全屏画面上面，不用退出全屏</div>
+    </div>
+  </div>
+</body>
+</html>

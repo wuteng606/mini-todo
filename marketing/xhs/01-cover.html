@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: 1080px 1440px; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1440px; overflow: hidden; position: relative;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Heiti SC", system-ui, sans-serif;
+    color: #16203A;
+    background:
+      radial-gradient(900px 720px at 6% -8%, #FFDFCC 0%, rgba(255,223,204,0) 62%),
+      radial-gradient(820px 640px at 104% 4%, #D8E4FF 0%, rgba(216,228,255,0) 58%),
+      linear-gradient(168deg, #FFF8F4 0%, #F5F7FF 52%, #E9EFFF 100%);
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(2px); opacity: .55; }
+  .b1 { width: 260px; height: 260px; left: -90px; top: 620px;
+        background: radial-gradient(circle at 35% 35%, #FFD3BC, rgba(255,211,188,0)); }
+  .b2 { width: 300px; height: 300px; right: -110px; top: 980px;
+        background: radial-gradient(circle at 40% 40%, #C9DAFF, rgba(201,218,255,0)); }
+
+  .wrap { position: relative; height: 100%; padding: 74px 78px 66px;
+          display: flex; flex-direction: column; }
+
+  .topbar { display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    width: 58px; height: 58px; border-radius: 18px;
+    background: linear-gradient(150deg, #4B7CF8, #2F55E0);
+    box-shadow: 0 12px 24px rgba(61,108,246,.32), inset 0 1px 0 rgba(255,255,255,.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo svg { width: 30px; height: 30px; }
+  .brand-t { font-size: 26px; font-weight: 700; letter-spacing: .5px; color: #35415E; }
+  .brand-s { font-size: 18px; color: #8A93A8; margin-top: 2px; letter-spacing: .4px; }
+  .badge {
+    padding: 12px 22px; border-radius: 999px; font-size: 20px; font-weight: 600;
+    color: #3D6CF6; background: rgba(255,255,255,.72);
+    border: 1px solid rgba(61,108,246,.22);
+    box-shadow: 0 8px 18px rgba(61,108,246,.10);
+  }
+
+  h1 { margin-top: 46px; font-size: 96px; line-height: 1.18; letter-spacing: -2px; font-weight: 800; }
+  h1 .hl { position: relative; display: inline-block; color: #2F55E0; }
+  h1 .hl::after {
+    content: ""; position: absolute; left: 2px; right: 2px; bottom: 12px; height: 22px;
+    background: linear-gradient(90deg, rgba(255,196,120,.85), rgba(255,222,150,.55));
+    border-radius: 12px; z-index: -1;
+  }
+  .sub { margin-top: 30px; font-size: 33px; line-height: 1.5; color: #5A6480; font-weight: 500; }
+  .sub b { color: #2F55E0; font-weight: 700; }
+
+  .shot { margin-top: 40px; position: relative; width: 93%; align-self: center; }
+  .card {
+    border-radius: 28px; overflow: hidden;
+    box-shadow: 0 40px 80px -30px rgba(35,52,110,.45), 0 8px 24px rgba(35,52,110,.10);
+    border: 1px solid rgba(255,255,255,.85);
+  }
+  .card img { display: block; width: 100%; }
+
+  .chips { margin-top: 34px; display: flex; gap: 18px; }
+  .chip {
+    flex: 1; padding: 24px 18px; border-radius: 24px; text-align: center;
+    background: rgba(255,255,255,.78); border: 1px solid rgba(255,255,255,.9);
+    box-shadow: 0 14px 28px rgba(53,65,94,.08);
+  }
+  .chip .k { font-size: 30px; font-weight: 800; color: #21304F; letter-spacing: -.5px; }
+  .chip .v { margin-top: 6px; font-size: 19px; color: #7B8599; }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M5 12.5l4.2 4.3L19 7" stroke="#fff" stroke-width="3.2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-t">Mini Todo</div>
+          <div class="brand-s">菜单栏里的待办清单</div>
+        </div>
+      </div>
+      <div class="badge">macOS · Windows</div>
+    </div>
+
+    <h1>终于有个<br><span class="hl">不吵我</span>的待办</h1>
+
+    <div class="sub">常驻菜单栏，<b>⌘ ⇧ Space</b> 随手记一笔<br>别的应用全屏时，它也能飘在最上面</div>
+
+    <div class="shot">
+      <div class="card">
+        <img src="file:///Volumes/Extra/Projects/workbuddy/mini-tool/mini-todo-studio/design/screenshot.png">
+      </div>
+    </div>
+
+    <div class="chips">
+      <div class="chip"><div class="k">纯本地</div><div class="v">不登录 · 不上传</div></div>
+      <div class="chip"><div class="k">6 MB</div><div class="v">装完就忘掉它</div></div>
+      <div class="chip"><div class="k">免打扰</div><div class="v">到点才提醒</div></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: 1080px 1440px; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px; height: 1440px; overflow: hidden; position: relative;
+    font-family: "PingFang SC", "Hiragino Sans GB", "Heiti SC", system-ui, sans-serif;
+    color: #16203A;
+    background:
+      radial-gradient(720px 600px at 100% 100%, #FFE1CE 0%, rgba(255,225,206,0) 58%),
+      radial-gradient(680px 520px at 0% 0%, #E2E9FF 0%, rgba(226,233,255,0) 60%),
+      linear-gradient(160deg, #FFF9F5 0%, #F7F8FF 55%, #EFF3FF 100%);
+  }
+  .wrap { padding: 86px 88px 74px; height: 100%; display: flex; flex-direction: column; }
+
+  .label {
+    align-self: flex-start; padding: 11px 22px; border-radius: 999px;
+    font-size: 21px; font-weight: 700; letter-spacing: 1px;
+    color: #2F55E0; background: rgba(255,255,255,.82);
+    border: 1px solid rgba(47,85,224,.16);
+  }
+  h2 { margin-top: 32px; font-size: 74px; line-height: 1.26; font-weight: 800; letter-spacing: -1.5px; }
+  h2 em { font-style: normal; color: #2F55E0; }
+
+  .list { margin-top: 52px; display: flex; flex-direction: column; gap: 20px; }
+  .row {
+    display: flex; align-items: center; gap: 26px;
+    padding: 28px 30px; border-radius: 28px;
+    background: rgba(255,255,255,.82);
+    border: 1px solid rgba(255,255,255,.95);
+    box-shadow: 0 16px 30px rgba(53,65,94,.07);
+  }
+  .ico {
+    width: 84px; height: 84px; flex: none; border-radius: 24px;
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+    background: linear-gradient(155deg, #FFFFFF, #EEF2FF);
+    box-shadow: inset 0 1px 0 #fff, 0 8px 16px rgba(53,65,94,.08);
+  }
+  .tx .t { font-size: 36px; font-weight: 700; letter-spacing: -.4px; }
+  .tx .d { margin-top: 8px; font-size: 25px; color: #6B7489; line-height: 1.4; }
+
+  .cta {
+    margin-top: auto; padding-top: 34px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cta .big { font-size: 40px; font-weight: 800; letter-spacing: -.6px; }
+  .cta .big span { color: #2F55E0; }
+  .cta .small { font-size: 24px; color: #77809A; margin-top: 8px; }
+  .pill {
+    padding: 20px 30px; border-radius: 999px; font-size: 25px; font-weight: 700; color: #fff;
+    background: linear-gradient(150deg, #4B7CF8, #2F55E0);
+    box-shadow: 0 16px 28px rgba(47,85,224,.32);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="label">为什么留下它</div>
+    <h2>四个理由，<br>它<em>没再被我卸载</em></h2>
+
+    <div class="list">
+      <div class="row">
+        <div class="ico">🔒</div>
+        <div class="tx">
+          <div class="t">数据只在你电脑里</div>
+          <div class="d">一个 SQLite 文件，不登录、不同步、不上传</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="ico">⏰</div>
+        <div class="tx">
+          <div class="t">只有到点才出声</div>
+          <div class="d">设了时间的任务弹系统通知，其余时间彻底安静</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="ico">💬</div>
+        <div class="tx">
+          <div class="t">一句话就够了</div>
+          <div class="d">「明天 3 点 交周报」，自动拆出标题和时间</div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="ico">🐱</div>
+        <div class="tx">
+          <div class="t">还有一只猫陪着打卡</div>
+          <div class="d">完成一条就往下挪一点，进度条在底部</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta">
+      <div>
+        <div class="big">开源 · 免费 · <span>安装包 6 MB</span></div>
+        <div class="small">macOS / Windows 都能用，一个 App 图标的事</div>
+      </div>
+      <div class="pill">不打扰你</div>
+    </div>
+  </div>
+</body>
+</html>
