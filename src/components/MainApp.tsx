@@ -516,6 +516,8 @@ export function MainApp() {
                             : "today";
                         setView((current) => (current === "all" ? current : target));
                         highlightAdded(task.id);
+                        const due = task.dueAt != null ? dueText(task.dueAt).text : null;
+                        showFlash(due ? `已添加「${task.title}」· ${due}` : `已添加「${task.title}」`);
                       })
                       .catch((err) => showFlash(`添加失败：${String(err)}`, "error"));
                   }}

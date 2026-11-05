@@ -558,18 +558,30 @@ input { user-select: text; }
 .pop-input input::placeholder { color: #a8a5b6; font-weight: 400; }
 .pop-input .keys { font-size: 10px; color: #b3b0be; white-space: nowrap; }
 
-/* 回车保存后的确认条：尤其是「明天/未来」任务不会出现在今日列表里 */
+/* 回车保存后的确认条：尤其是「明天/未来」任务，同时会在「接下来」分组里出现 */
 .pop-flash {
   margin: -2px 0 8px; padding: 7px 10px; border-radius: 9px;
   font-size: 11px; font-weight: 700; line-height: 1.45;
   color: #2f6bff; background: rgba(47, 107, 255, 0.1);
   border: 1px solid rgba(47, 107, 255, 0.18);
   position: relative; z-index: 1;
-  animation: pop 0.2s ease;
+  animation: flash-in 0.18s ease;
 }
 .pop-flash.error {
   color: #b4483a; background: rgba(226, 112, 95, 0.12);
   border-color: rgba(226, 112, 95, 0.24);
+}
+
+.pop-group {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 6px 2px; margin-top: 2px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  color: #9a97a8;
+  flex: 0 0 auto;
+}
+.pop-group::after {
+  content: ""; flex: 1; height: 1px;
+  background: rgba(120, 115, 140, 0.14);
 }
 
 .pop-list {
@@ -590,6 +602,23 @@ input { user-select: text; }
   flex: 0 0 auto;
 }
 .pop-task:hover { background: #efedf6; }
+
+/* 刚添加的任务闪一下并滚到可见位置 */
+.pop-task.just-added { animation: popTaskAdded 1.8s ease; }
+@keyframes popTaskAdded {
+  0% {
+    background: #dbe8ff;
+    box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.42);
+  }
+  70% {
+    background: #e9f0ff;
+    box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.16);
+  }
+  100% {
+    background: #f7f6fa;
+    box-shadow: none;
+  }
+}
 .pop-task .check { width: 20px; height: 20px; flex: 0 0 20px; border-width: 1.8px; background: #fff; }
 .pop-task .check svg { width: 11px; height: 11px; }
 .pop-task span {
@@ -724,7 +753,7 @@ input { user-select: text; }
 
 /* 操作失败提示（主窗口） */
 .toast {
-  position: fixed; left: 50%; bottom: 28px; z-index: 60;
+  position: fixed; left: 50%; bottom: 56px; z-index: 60;
   transform: translateX(-50%);
   max-width: min(520px, calc(100vw - 48px));
   padding: 10px 16px; border-radius: 999px;
@@ -735,7 +764,12 @@ input { user-select: text; }
   user-select: text;
 }
 .toast.error { background: rgba(180, 72, 58, 0.95); }
+@keyframes flash-in {
+  from { transform: translateY(-3px); }
+  to { transform: none; }
+}
 @keyframes toast-in {
-  from { opacity: 0; transform: translate(-50%, 6px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  /* 只做位移动画：即使动画还没开始，提示也必须是可见的 */
+  from { transform: translate(-50%, 6px); }
+  to { transform: translate(-50%, 0); }
 }

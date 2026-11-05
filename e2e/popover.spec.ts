@@ -24,16 +24,22 @@ test("今日任务：回车保存后立刻出现在列表里", async ({ page }) 
   expect(tasks[0].dueAt).toBeNull();
 });
 
-test("「明天3点xx」：任务真的存下，并提示已加入即将到来", async ({ page }) => {
+test("「明天3点xx」：确认条 + 接下来分组里都能看到这条任务", async ({ page }) => {
   await quickAdd(page, "明天3点提交日报");
 
-  // 弹窗只列今日待办，所以列表里不应该出现；但必须明确给出保存成功的提示
+  // 确认条说明加到了哪里
   await expect(page.locator(".pop-flash")).toHaveText(
     "已加入即将到来 · 明天 03:00",
   );
   await expect(page.locator(".pop-input input")).toHaveValue("");
-  await expect(page.locator(".pop-task")).toHaveCount(0);
-  await expect(page.locator(".pop-empty")).toBeVisible();
+
+  // 任务本身出现在「接下来」分组，并高亮闪一下——不是只弹一条提示
+  await expect(page.locator(".pop-group")).toHaveText("接下来");
+  const row = page.locator(".pop-task", { hasText: "提交日报" });
+  await expect(row).toBeVisible();
+  await expect(row).toHaveClass(/just-added/);
+  await expect(row.locator("em")).toHaveText("明天 03:00");
+  await expect(page.locator(".pop-empty")).toHaveCount(0);
 
   const tasks = await readTasks(page);
   expect(tasks).toHaveLength(1);
@@ -44,11 +50,12 @@ test("「明天3点xx」：任务真的存下，并提示已加入即将到来",
   expect(due.getTime()).toBeGreaterThan(Date.now());
 });
 
-test("明晚/下午等说法按正确的小时保存", async ({ page }) => {
+test("明晚/下午等说法按正确的小时保存，并在列表里出现", async ({ page }) => {
   await quickAdd(page, "明晚8点看电影");
   await expect(page.locator(".pop-flash")).toHaveText(
     "已加入即将到来 · 明天 20:00",
   );
+  await expect(page.locator(".pop-task", { hasText: "看电影" })).toBeVisible();
 
   const task = (await readTasks(page))[0];
   expect(new Date(task.dueAt!).getHours()).toBe(20);
@@ -95,10 +102,14 @@ test("弹窗里勾选完成", async ({ page }) => {
   expect(task.completedAt).not.toBeNull();
 });
 
-test("弹窗解析预览与主窗口一致（明日任务不误进今日列表）", async ({ page }) => {
+test("今天和接下来分组同时存在时都能看到", async ({ page }) => {
+  await quickAdd(page, "买牛奶");
   await quickAdd(page, "明天下午3点喝茶");
+
+  await expect(page.locator(".pop-group")).toHaveText(["今天", "接下来"]);
+  await expect(page.locator(".pop-task", { hasText: "买牛奶" })).toBeVisible();
+  await expect(page.locator(".pop-task", { hasText: "喝茶" })).toBeVisible();
   await expect(page.locator(".pop-flash")).toHaveText(
     "已加入即将到来 · 明天 15:00",
   );
-  await expect(page.locator(".pop-task")).toHaveCount(0);
 });

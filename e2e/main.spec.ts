@@ -36,6 +36,7 @@ test("写「明天3点xx」会加入即将到来，并自动切到对应清单",
   await expect(row).toBeVisible();
   await expect(row.locator(".task-time")).toHaveText(/明天 03:00/);
   await expect(row).toHaveClass(/just-added/);
+  await expect(page.locator(".toast")).toContainText("已添加「提交日报」· 明天 03:00");
 });
 
 test("不带时间的任务留在今日清单", async ({ page }) => {

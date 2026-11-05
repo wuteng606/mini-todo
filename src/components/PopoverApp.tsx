@@ -3,7 +3,8 @@ import catUrl from "../../design/assets/cat-mascot-cut.png";
 import { isTauri } from "../lib/api";
 import { dueText, startOfDay } from "../lib/dates";
 import { parseTask } from "../lib/nlp";
-import type { Task } from "../lib/types";import { useTasks } from "../lib/useTasks";
+import type { Task } from "../lib/types";
+import { useTasks } from "../lib/useTasks";
 import { CheckIcon, PencilIcon, PlusIcon } from "./Icons";
 
 async function current() {
@@ -18,14 +19,22 @@ export function PopoverApp() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [flash, setFlash] = useState<{ text: string; tone: "ok" | "error" } | null>(null);
+  const [justAddedId, setJustAddedId] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const editRef = useRef<HTMLInputElement>(null);
   const flashTimer = useRef<number | undefined>(undefined);
+  const addedTimer = useRef<number | undefined>(undefined);
 
   const showFlash = (text: string, tone: "ok" | "error" = "ok") => {
     setFlash({ text, tone });
     window.clearTimeout(flashTimer.current);
     flashTimer.current = window.setTimeout(() => setFlash(null), 2600);
+  };
+
+  const highlightAdded = (id: number) => {
+    setJustAddedId(id);
+    window.clearTimeout(addedTimer.current);
+    addedTimer.current = window.setTimeout(() => setJustAddedId(null), 1800);
   };
 
   /** 先播放 420ms 的完成动效，再真正落库，避免点了就消失 */
@@ -55,15 +64,27 @@ export function PopoverApp() {
     setEditingId(null);
   };
 
-  const todayTasks = useMemo(() => {
+  const { todayTasks, upcomingTasks } = useMemo(() => {
     const tomorrow = startOfDay(Date.now()) + 86_400_000;
-    return tasks
-      .filter((t) => !t.completedAt && (t.dueAt == null || t.dueAt < tomorrow))
-      .sort((a, b) => (a.dueAt ?? Infinity) - (b.dueAt ?? Infinity))
-      .slice(0, 9);
+    const pending = tasks.filter((t) => !t.completedAt);
+    return {
+      todayTasks: pending
+        .filter((t) => t.dueAt == null || t.dueAt < tomorrow)
+        .sort((a, b) => (a.dueAt ?? Infinity) - (b.dueAt ?? Infinity)),
+      upcomingTasks: pending
+        .filter((t) => t.dueAt != null && t.dueAt >= tomorrow)
+        .sort((a, b) => (a.dueAt ?? Infinity) - (b.dueAt ?? Infinity)),
+    };
   }, [tasks]);
 
-  const total = todayTasks.length;
+  const total = todayTasks.length + upcomingTasks.length;
+
+  // 新任务不一定在当前滚动位置，滚过去让用户一眼看到
+  useEffect(() => {
+    if (justAddedId == null) return;
+    const el = document.querySelector<HTMLElement>(`.pop-task[data-task-id="${justAddedId}"]`);
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [justAddedId, total]);
 
   useEffect(() => {
     const focus = () => inputRef.current?.focus();
@@ -83,6 +104,7 @@ export function PopoverApp() {
       window.removeEventListener("focus", focus);
       window.removeEventListener("keydown", onKey);
       window.clearTimeout(flashTimer.current);
+      window.clearTimeout(addedTimer.current);
     };
   }, []);
 
@@ -94,11 +116,11 @@ export function PopoverApp() {
     try {
       const task = await create({ title: p.title, dueAt: p.dueAt, tag });
       setValue("");
+      highlightAdded(task.id);
       const tomorrow = startOfDay(Date.now()) + 86_400_000;
       if (task.dueAt == null || task.dueAt < tomorrow) {
         showFlash(task.dueAt ? `已添加 · ${dueText(task.dueAt).text}` : "已添加");
       } else {
-        // 弹窗只列今日待办，未来任务加完后不会出现在列表里，必须明确告诉用户
         showFlash(`已加入即将到来 · ${dueText(task.dueAt).text}`);
       }
     } catch (err) {
@@ -109,11 +131,63 @@ export function PopoverApp() {
 
   const close = () => { if (isTauri) void current().then((w) => w.hide()); };
 
+  const renderTask = (t: Task) => {
+    const due = t.dueAt ? dueText(t.dueAt) : null;
+    const checking = completing.includes(t.id);
+    const editing = editingId === t.id;
+
+    return (
+      <div
+        key={t.id}
+        data-task-id={t.id}
+        className={`pop-task${checking ? " completing" : ""}${editing ? " editing" : ""}${justAddedId === t.id ? " just-added" : ""}`}
+        onDoubleClick={(e) => {
+          if (editing) return;
+          if ((e.target as HTMLElement).closest("button")) return;
+          startEdit(t);
+        }}
+      >
+        {editing ? (
+          <>
+            <input
+              ref={editRef}
+              className="pop-edit-input"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitEdit}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === "Enter") commitEdit();
+                if (e.key === "Escape") setEditingId(null);
+              }}
+            />
+            <em className="ok">↵ 保存</em>
+          </>
+        ) : (
+          <>
+            <button className="check" onClick={() => complete(t.id)}>
+              <CheckIcon />
+            </button>
+            <span title={t.title}>{t.title}</span>
+            {checking ? (
+              <em className="ok">已完成</em>
+            ) : (
+              due && <em className={due.tone === "soon" ? "soon" : ""}>{due.text}</em>
+            )}
+            <button className="pop-edit-btn" title="编辑" onClick={() => startEdit(t)}>
+              <PencilIcon />
+            </button>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="pop-shell">
       <div className="pop-card">
         <div className="pop-head" data-tauri-drag-region>
-          <span className="t">今日待办</span>
+          <span className="t">待办</span>
           <span className="d">{total}<i> 项</i></span>
         </div>
 
@@ -139,62 +213,26 @@ export function PopoverApp() {
         )}
 
         <div className="pop-list">
-          {todayTasks.length === 0 && (
+          {total === 0 && (
             <div className="pop-empty">
               <img src={catUrl} alt="" />
-              今天的都做完了，休息一下 ☕️
+              {tasks.length === 0 ? "还没有待办，记一件小事吧" : "今天的都做完了，休息一下 ☕️"}
             </div>
           )}
-          {todayTasks.map((t: Task) => {
-            const due = t.dueAt ? dueText(t.dueAt) : null;
-            const checking = completing.includes(t.id);
-            const editing = editingId === t.id;
 
-            return (
-              <div
-                key={t.id}
-                className={`pop-task${checking ? " completing" : ""}${editing ? " editing" : ""}`}
-                onDoubleClick={(e) => {
-                  if (editing) return;
-                  if ((e.target as HTMLElement).closest("button")) return;
-                  startEdit(t);
-                }}
-              >
-                {editing ? (
-                  <>
-                    <input
-                      ref={editRef}
-                      className="pop-edit-input"
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      onBlur={commitEdit}
-                      onKeyDown={(e) => {
-                        e.stopPropagation();
-                        if (e.key === "Enter") commitEdit();
-                        if (e.key === "Escape") setEditingId(null);
-                      }}
-                    />
-                    <em className="ok">↵ 保存</em>
-                  </>
-                ) : (
-                  <>
-                    <button className="check" onClick={() => complete(t.id)}>
-                      <CheckIcon />
-                    </button>
-                    <span title={t.title}>{t.title}</span>
-                    {checking ? (
-                      <em className="ok">已完成</em>
-                    ) : (
-                      due && <em className={due.tone === "soon" ? "soon" : ""}>{due.text}</em>
-                    )}
-                    <button className="pop-edit-btn" title="编辑" onClick={() => startEdit(t)}>
-                      <PencilIcon />
-                    </button>
-                  </>
-                )}
-              </div>
-            );
-          })}
+          {todayTasks.length > 0 && (
+            <>
+              {upcomingTasks.length > 0 && <div className="pop-group">今天</div>}
+              {todayTasks.map(renderTask)}
+            </>
+          )}
+
+          {upcomingTasks.length > 0 && (
+            <>
+              <div className="pop-group">接下来</div>
+              {upcomingTasks.map(renderTask)}
+            </>
+          )}
         </div>
       </div>
     </div>
