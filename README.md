@@ -19,6 +19,7 @@
 - **不占 Dock**：macOS 上只在菜单栏留一个图标，后台运行，`⌘ Tab` 和 Dock 里都不会出现（退出走菜单栏菜单）
 - **全屏也盖不住**：macOS 上别的应用进了全屏，快捷窗口依然浮在最上层（不切走全屏、也不抢焦点），记完点回全屏应用自动收起
 - **搜索**：`⌘ K` 实时过滤
+- **手机 / 平板**：同一套代码可以跑 iOS / Android，窄屏自动切成整屏布局 + 底部标签栏（详见下方「移动端」）
 - **本地数据**：SQLite，macOS 在 `~/Library/Application Support/com.minitodo.desktop/`，Windows 在 `%APPDATA%\com.minitodo.desktop\`
 
 ## 快捷键
@@ -59,6 +60,53 @@ npm run tauri dev      # 前端热更新 + Rust 调试构建
 脚本会做四件事：构建前端 → release 编译 Rust（前端资源内嵌进二进制）→ 组装 `.app` → ad-hoc 签名。
 
 > 说明：应用未做 Apple 公证，仅在自己机器上使用没有影响。若要分发给别人，需要开发者账号签名 + 公证。
+
+## 移动端（iOS / Android）
+
+同一套前端 + Rust 代码可以直接跑在手机和平板上。桌面专属能力（菜单栏图标、全局快捷键、悬浮快捷窗口、窗口定位）在移动端自动关闭，只剩单窗口 + 系统通知。
+
+**界面适配**
+
+| 宽度 | 布局 |
+| --- | --- |
+| > 1024pt | 桌面：1040×720 浮动玻璃窗，左侧图标栏 |
+| 761–1024pt | 平板：窗口贴边、留白收敛，仍是左侧图标栏 |
+| ≤ 760pt | 手机：整屏布局，图标栏变成**底部标签栏**，隐藏 macOS 红绿灯与吉祥物 |
+
+细节：输入框统一 16px（避免 iOS 聚焦时自动放大）、`viewport-fit=cover` + `env(safe-area-inset-*)` 避开刘海和底部横条、触屏设备上任务行的编辑/删除按钮常驻（没有 hover）、任务行高度加高到 58pt。
+
+**准备工作**（只需一次）
+
+- iOS：装 Xcode（含模拟器），然后 `sudo xcode-select -s /Applications/Xcode.app`
+- Android：装 Android Studio（SDK + NDK），配好 `ANDROID_HOME` / `NDK_HOME`
+- Rust 交叉编译目标：
+  ```bash
+  rustup target add aarch64-apple-ios aarch64-apple-ios-sim \
+    aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+  ```
+
+**初始化平台工程**（会生成 `src-tauri/gen/apple`、`src-tauri/gen/android`）
+
+```bash
+npm run tauri ios init
+npm run tauri android init
+```
+
+**开发 / 打包**
+
+```bash
+npm run tauri ios dev          # Xcode 模拟器
+npm run tauri android dev      # 连真机或开模拟器
+npm run tauri ios build        # 出 ipa / xcarchive
+npm run tauri android build -- --apk
+```
+
+**实现说明**
+
+- crate 现在是「lib + bin」：`src/lib.rs` 里的 `run()` 是唯一入口，桌面由 `src/main.rs` 调用，移动端由 `#[cfg_attr(mobile, tauri::mobile_entry_point)]` 生成的原生入口调用。
+- 桌面专属依赖（`tauri-plugin-global-shortcut`、`tauri-plugin-positioner`、`tray-icon`）放在 `[target.'cfg(any(macos, windows, linux))'.dependencies]`，移动端不会拉进来。
+- 菜单栏快捷窗口（popover）不再写在 `tauri.conf.json` 里，改成桌面端运行时用 `WebviewWindowBuilder` 创建 —— 移动端只支持一个 webview。
+- 数据仍然是 `app_data_dir` 下的 SQLite 文件；`rusqlite` 开了 `bundled`，iOS / Android 上不依赖系统 sqlite3。
 
 ## 自检
 
@@ -108,7 +156,12 @@ Tauri 2 · React 19 · TypeScript · Vite · SQLite（rusqlite）· Playwright �
 src/              前端（React）
   components/     MainApp、PopoverApp、TaskEditor、SettingsSheet、图标
   lib/            api（含浏览器 mock）、nlp（中文时间解析）、select（视图筛选）
-src-tauri/        Rust：main（窗口 / 托盘 / 快捷键）、db、commands
+src-tauri/        Rust
+  src/lib.rs      应用主体 + run()（桌面 / 移动端共用入口）
+  src/main.rs     桌面可执行入口（调 run）
+  src/macos_overlay.rs  macOS 全屏浮层（NSPanel）
+  src/db.rs       数据层（SQLite）
+  src/commands.rs 前端调用的命令
 e2e/              Playwright 端到端测试（浏览器 mock，不依赖 Tauri）
 design/           UI 稿与素材
 scripts/          打包脚本

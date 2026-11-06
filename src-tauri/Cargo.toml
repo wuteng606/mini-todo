@@ -1,24 +1,37 @@
 [package]
 name = "mini-todo"
 version = "0.2.1"
-description = "A tiny local-first todo app for macOS and Windows"
+description = "A tiny local-first todo app for macOS, Windows, iOS and Android"
 authors = ["Mini Todo"]
 edition = "2021"
 # 让 cargo 按本机 Rust 版本挑选依赖，避免拉到要求 1.90 的 crate
 resolver = "3"
 
+# 移动端（iOS / Android）要求 crate 带 lib 目标，入口是 lib.rs 里的 mobile_entry_point；
+# 桌面端仍由 src/main.rs 调用同一个 run()。
+[lib]
+name = "mini_todo_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["macos-private-api", "tray-icon", "image-png"] }
-tauri-plugin-global-shortcut = "2"
+# macos-private-api 必须写在基础依赖里：tauri-build 会拿它和 tauri.conf.json 的
+# macOSPrivateApi 开关比对（放 target 表里它看不到）
+tauri = { version = "2", features = ["image-png", "macos-private-api"] }
 tauri-plugin-notification = "2"
-tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# bundled：把 SQLite 一起编进去，iOS / Android 上没有系统 sqlite3 可用
 rusqlite = { version = "0.32", features = ["bundled"] }
 chrono = "0.4"
+
+# 桌面专属：托盘、全局快捷键、窗口定位（移动端没有这些能力）
+[target.'cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))'.dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
 
 # macOS 专用：直接操作 NSWindow，让快捷窗口能浮在全屏应用之上
 [target.'cfg(target_os = "macos")'.dependencies]

@@ -773,3 +773,125 @@ input { user-select: text; }
   from { transform: translate(-50%, 6px); }
   to { transform: translate(-50%, 0); }
 }
+
+/* ===================== 移动端 / 平板适配 ===================== */
+/*
+ * 桌面端是一个 1040×720 的浮动玻璃窗；手机 / 平板是整屏应用。
+ * 这里用媒体查询做三档：
+ *   > 1024px  桌面：原样
+ *   ≤ 1024px  平板：收紧留白，窗口不再圆角贴边
+ *   ≤ 760px   手机：整屏 + 导航栏挪到底部
+ */
+
+/* 触屏没有 hover，操作按钮常驻显示 */
+@media (hover: none) {
+  /* 触屏设备没有 macOS 窗口装饰，假的红绿灯只会误导 */
+  .traffic { display: none; }
+  .task-act, .task-edit-btn { opacity: 1; }
+  .task:hover .task-act { opacity: 1; }
+  .task-act:hover, .rail-btn:hover { background: transparent; }
+}
+
+/* iOS 上输入框字号小于 16px 会被自动放大 */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select { font-size: 16px; }
+}
+
+/* ---------- 平板 ---------- */
+@media (max-width: 1024px) {
+  .shell { border-radius: 0; }
+  .card { inset: 10px; border-radius: 24px; padding: 12px 14px 14px; }
+  .hero { min-height: 132px; }
+  .hero h1 { font-size: 30px; }
+  .mascot-wrap { width: 118px; }
+}
+
+/* ---------- 手机 ---------- */
+@media (max-width: 760px) {
+  html, body, #root { height: 100%; }
+  body { overscroll-behavior: none; }
+
+  .shell { border-radius: 0; background-position: center 30%; }
+
+  .card {
+    inset: 0;
+    border-radius: 0;
+    border: 0;
+    box-shadow: none;
+    /* 手机上不做实时模糊，省电也更清爽 */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(165deg, rgba(255, 252, 248, 0.92), rgba(240, 244, 255, 0.92));
+    padding: calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 14px) 0 calc(env(safe-area-inset-left) + 14px);
+  }
+  .card::before { display: none; }
+
+  .titlebar { height: 44px; flex: 0 0 44px; gap: 10px; }
+  .traffic { display: none; }
+  .brand-name { display: none; }
+  .title-right { flex: 1; min-width: 0; margin-left: auto; }
+  .search { flex: 1; min-width: 0; height: 38px; }
+  .search input { font-size: 16px; }
+  .pill-btn.static { display: none; }
+
+  .body { flex-direction: column; gap: 0; margin-top: 4px; }
+
+  .main { order: 1; min-height: 0; }
+
+  /* 左侧图标栏 → 底部标签栏 */
+  .rail {
+    order: 2;
+    width: auto;
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    gap: 0;
+    margin: 0 calc(-1 * (env(safe-area-inset-left) + 14px));
+    padding: 6px calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 6px) calc(env(safe-area-inset-left) + 8px);
+    border-top: 1px solid rgba(120, 115, 140, 0.14);
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: saturate(1.4) blur(18px);
+    -webkit-backdrop-filter: saturate(1.4) blur(18px);
+  }
+  .rail-btn { flex: 1; width: auto; max-width: 92px; height: 48px; border-radius: 14px; }
+  .rail-btn svg { width: 22px; height: 22px; }
+  .rail-btn .badge { top: 4px; right: 50%; transform: translateX(18px); }
+  .rail-spacer, .rail-sep { display: none; }
+
+  .hero { min-height: 104px; padding: 2px 0 6px; }
+  .hero h1 { font-size: 27px; }
+  .hero p { font-size: 12.5px; margin-top: 6px; }
+  .hero .meta { font-size: 11px; margin-top: 6px; }
+  .mascot-wrap { width: 82px; }
+
+  .fab { flex: 0 0 46px; margin-left: 10px; }
+  .fab { flex: 0 0 46px; margin-left: 10px; }
+  .task { height: 58px; padding: 0 12px; border-radius: 18px; }
+  .task-act { width: 32px; height: 32px; flex: 0 0 32px; opacity: 1; }
+  .list-wrap { padding-bottom: 8px; }
+
+  .adder { padding-bottom: calc(env(safe-area-inset-bottom) + 4px); }
+  .adder input { font-size: 16px; }
+  .adder-foot .keys { display: none; }
+}
+
+/* ---------- 窄屏手机（iPhone 等 390 宽上下） ---------- */
+@media (max-width: 430px) {
+  .hero { min-height: 92px; }
+  .hero h1 { font-size: 25px; }
+  .hero p { font-size: 12px; }
+  /* 390 这类窄屏标题区没有多余空间，收起吉祥物，保证任务区完整 */
+  .mascot-wrap { display: none; }
+  .rail-btn { height: 46px; }
+}
+
+/* ---------- 窄屏手机（iPhone 等 390 宽上下） ---------- */
+@media (max-width: 430px) {
+  .hero { min-height: 92px; }
+  .hero h1 { font-size: 25px; }
+  .hero p { font-size: 12px; }
+  /* 390 这类窄屏标题区没有多余空间，收起吉祥物，保证任务区完整 */
+  .mascot-wrap { display: none; }
+  .rail-btn { height: 46px; }
+}
